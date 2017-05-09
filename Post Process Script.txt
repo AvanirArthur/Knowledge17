@@ -1,0 +1,41 @@
+//Post process script
+
+var location = 'Powershell Command Activity'
+
+try{
+	//check for errors
+	if (gs.nil(executionResult.errorMessages)){
+		//no errors
+		activityOutput.result = "success"; 
+		var output = executionResult.output;
+		
+		if(output!=null){
+			//is object tag filled in?
+			if(output.indexOf('<Objects>') > -1){
+				activityOutput.output = output.substring(output.indexOf('<Objects>'));
+			}
+			else{
+				//grab output tag
+				activity.Output.output = output;
+			}
+			//write findings to system logs
+			gs.info('----> [{1}:{2}] activityOutput.output: {0}',[activityOutput.output, new GlideDateTime().getNumericValue(), location]); //debug
+		}
+		else{
+			// error was returned
+			activityOutput.result = "failure";
+			//grab error and output and place in activity outbound data stream
+			
+			activityOutput.errorMessage = executionResult.errorMessages;
+			activityOutput.output = executionResult.output;
+			gs.info('---> [{1}:{2}] activityOutput.errorMessage: {0}', [activityOutput.errorMessage, new GlideDateTime().getNumericValue(), location]); //debug
+			gs.info('---> [{1}:{2}] activityOutput.output: {0}', [activityOutput.output, new GlideDateTime().getNumericValue(), location]); //debug	
+		}
+	}
+}
+
+catch(err){
+	// catastrpohic error!
+	activityOutput.result = 'failure';
+	gs.error('---> [{1}:{2}] {0}',[err, new GlideDateTime().getNumericValue(),location]);
+}
